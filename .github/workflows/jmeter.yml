@@ -31,8 +31,9 @@ jobs:
       - name: Stress test
         run: apache-jmeter-5.6.3/bin/jmeter -n -t jmeter/stress_test.jmx -l results/stress_test.jtl
 
-      - name: Soak test
-        run: apache-jmeter-5.6.3/bin/jmeter -n -t jmeter/soak_test.jmx -l results/soak_test.jtl
+      - name: Soak test (max 15 minutes)
+        run: |
+          timeout 15m apache-jmeter-5.6.3/bin/jmeter -n -t jmeter/soak_test.jmx -l results/soak_test.jtl
 
       - name: Upload JTL Results
         uses: actions/upload-artifact@v4
