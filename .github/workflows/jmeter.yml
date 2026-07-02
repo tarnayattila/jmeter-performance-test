@@ -1,0 +1,52 @@
+name: JMeter Performance Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+
+jobs:
+  jmeter-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+
+      - name: Load Test
+        run: bash ci/run_jmeter.sh load_test
+
+      - name: Stress Test
+        run: bash ci/run_jmeter.sh stress_test
+
+      - name: Soak Test
+        run: bash ci/run_jmeter.sh soak_test
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-results
+          path: results/
+
+      - name: Generate HTML Report
+        run: |
+          apache-jmeter-5.6.3/bin/jmeter -g results/result_load_test.jtl -o reports/load_test_html
+          apache-jmeter-5.6.3/bin/jmeter -g results/result_stress_test.jtl -o reports/stress_test_html
+          apache-jmeter-5.6.3/bin/jmeter -g results/result_soak_test.jtl -o reports/soak_test_html
+
+      - name: Upload HTML Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-html-reports
+          path: reports/
+
