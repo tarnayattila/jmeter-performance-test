@@ -43,6 +43,9 @@ jobs:
 
       - name: Generate HTML Reports
         run: |
+          rm -rf reports/load_test_html
+          rm -rf reports/stress_test_html
+          rm -rf reports/soak_test_html
           apache-jmeter-5.6.3/bin/jmeter -g results/load_test.jtl -o reports/load_test_html
           apache-jmeter-5.6.3/bin/jmeter -g results/stress_test.jtl -o reports/stress_test_html
           apache-jmeter-5.6.3/bin/jmeter -g results/soak_test.jtl -o reports/soak_test_html
