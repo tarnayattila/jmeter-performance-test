@@ -4,11 +4,8 @@ on:
   push:
     branches:
       - main
-      - master
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: "0 3 * * *"
 
 jobs:
   jmeter-tests:
@@ -23,30 +20,34 @@ jobs:
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
           tar -xzf apache-jmeter-5.6.3.tgz
 
-      - name: Load Test
-        run: bash ci/run_jmeter.sh load_test
+      - name: Create result directories
+        run: |
+          mkdir -p results
+          mkdir -p reports
 
-      - name: Stress Test
-        run: bash ci/run_jmeter.sh stress_test
+      - name: Load test
+        run: apache-jmeter-5.6.3/bin/jmeter -n -t jmeter/load_test.jmx -l results/load_test.jtl
 
-      - name: Soak Test
-        run: bash ci/run_jmeter.sh soak_test
+      - name: Stress test
+        run: apache-jmeter-5.6.3/bin/jmeter -n -t jmeter/stress_test.jmx -l results/stress_test.jtl
 
-      - name: Upload Results
+      - name: Soak test
+        run: apache-jmeter-5.6.3/bin/jmeter -n -t jmeter/soak_test.jmx -l results/soak_test.jtl
+
+      - name: Upload JTL Results
         uses: actions/upload-artifact@v4
         with:
-          name: jmeter-results
+          name: jmeter-jtl-results
           path: results/
 
-      - name: Generate HTML Report
+      - name: Generate HTML Reports
         run: |
-          apache-jmeter-5.6.3/bin/jmeter -g results/result_load_test.jtl -o reports/load_test_html
-          apache-jmeter-5.6.3/bin/jmeter -g results/result_stress_test.jtl -o reports/stress_test_html
-          apache-jmeter-5.6.3/bin/jmeter -g results/result_soak_test.jtl -o reports/soak_test_html
+          apache-jmeter-5.6.3/bin/jmeter -g results/load_test.jtl -o reports/load_test_html
+          apache-jmeter-5.6.3/bin/jmeter -g results/stress_test.jtl -o reports/stress_test_html
+          apache-jmeter-5.6.3/bin/jmeter -g results/soak_test.jtl -o reports/soak_test_html
 
       - name: Upload HTML Reports
         uses: actions/upload-artifact@v4
         with:
           name: jmeter-html-reports
           path: reports/
-
